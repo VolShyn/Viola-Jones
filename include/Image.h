@@ -1,25 +1,30 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#pragma once
+
 
 //  holds pixel data in a 2D vector
 template<typename T>
 class Image {
+private:
+    size_t width_, height_;
+    std::vector<std::vector<T>> data_; // each element is a row
 public:
-    using value_type = T;
-
+    // we initialize constructor explicitly
     Image(size_t width, size_t height) : width_(width), height_(height) {
-        data_.resize(height_);
-        for (auto& row : data_) {
-            row.resize(width_);
+        data_.resize(height_); // num of rows
+        for (auto& row : data_) { // every element is a vector, so we use auto&
+            row.resize(width_); // num of columns (row width)
         }
     }
 
+    // getters
     size_t width() const { return width_; }
     size_t height() const { return height_; }
 
-    // access operator
+    // explicit access operator (.at bound checking and readibility)
     std::vector<T>& operator[](size_t idx) { return data_.at(idx); }
     const std::vector<T>& operator[](size_t idx) const { return data_.at(idx); }
 
@@ -27,20 +32,16 @@ public:
     // we use a larger type (long long) for robustness
     Image<long long> computeIntegralImage() const {
         Image<long long> integral(width_, height_);
-        for (size_t y = 0; y < height_; ++y) {
+        for (size_t row = 0; row < height_; ++row) {
             long long rowSum = 0;
             for (size_t x = 0; x < width_; ++x) {
-                rowSum += (*this)[y][x];
-                if (y == 0)
-                    integral[y][x] = rowSum;
+                rowSum += (*this)[row][x];
+                if (row == 0)
+                    integral[row][x] = rowSum;
                 else
-                    integral[y][x] = integral[y - 1][x] + rowSum;
+                    integral[row][x] = integral[row - 1][x] + rowSum;
             }
         }
         return integral;
     }
-
-private:
-    size_t width_, height_;
-    std::vector<std::vector<T>> data_;
 };
