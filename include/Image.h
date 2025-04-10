@@ -29,11 +29,10 @@ public:
     const std::vector<T>& operator[](size_t idx) const { return data_.at(idx); }
 
     // below the integral image computation
-    // we use a larger type (long long) for robustness
-    Image<long long> computeIntegralImage() const {
-        Image<long long> integral(width_, height_);
+    Image<int> computeIntegralImage() const {
+        Image<int> integral(width_, height_);
         for (size_t row = 0; row < height_; ++row) {
-            long long rowSum = 0;
+            int rowSum = 0;
             for (size_t x = 0; x < width_; ++x) {
                 rowSum += (*this)[row][x];
                 if (row == 0)
