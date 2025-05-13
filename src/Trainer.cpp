@@ -2,6 +2,9 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <iostream>
+#include <numeric>
+
 
 namespace vj {
 
@@ -16,8 +19,8 @@ makeAllHaarFeatures(std::size_t window_size)
       for (std::size_t h = 1; h*2 <= window_size; ++h) {
         for (std::size_t x = 0; x + w <= window_size; ++x) {
           for (std::size_t y = 0; y + 2*h <= window_size; ++y) {
-            Rect white{ x,   y, w, h     };
-            Rect black{ x, y+h, w, h     };
+            Rect<int> white{ static_cast<int>(x), static_cast<int>(y), static_cast<int>(w), static_cast<int>(h) };
+            Rect<int> black{ static_cast<int>(x), static_cast<int>(y+h), static_cast<int>(w), static_cast<int>(h) };
             feats.emplace_back(white, black);
           }
         }
@@ -92,7 +95,7 @@ Trainer::trainStage(
             }
             if (err < bestErr) {
               bestErr = err;
-              bestW = { feat, static_cast<T>(thr), polarity, 0.0 };
+              bestW = { feat, static_cast<int>(thr), polarity, 0.0 };
             }
           }
         }
@@ -112,8 +115,8 @@ Trainer::trainStage(
         // re-evaluate weak on sample i
         auto& wkl = strong.weaks_.back();  // last weak
         bool pred = (wkl.polarity *
-                     (i < Npos ? feat(posIs[i],0,0)
-                               : feat(negIs[i-Npos],0,0))
+                     (i < Npos ? wkl.feat(posIs[i],0,0)
+                               : wkl.feat(negIs[i-Npos],0,0))
                     < wkl.polarity * wkl.thresh);
         weight *= std::exp(-alpha * (label ? +1 : -1) * (pred ? +1 : -1));
       }
@@ -128,20 +131,26 @@ Trainer::trainStage(
 }
 
 // 3) train a cascade by chaining multiple stages, each time removing true negatives.
-Cascade<int>
+CascadeClassifier<int>
 Trainer::trainCascade(
     std::vector<Image<long long>> posIs,
     std::vector<Image<long long>> negIs,
     const TrainerOptions& opts)
 {
-    Cascade<int> cascade;
-    double overallFPR = 1.0, overallTPR = 1.0;
+    CascadeClassifier<int> cascade;
+    double overallFPR = 1.0;
 
     while (overallFPR > 0.01) {  // stop when cascade is good enough
       auto stage = trainStage(posIs, negIs, opts);
       cascade.addStage(stage);
 
-      // evaluate on negatives to filter out “easy” ones
+      // recompute threshold = 0.5 * sum of alphas
+      double sumAlphas = 0;
+      for (auto const& w : stage.weaks_)
+        sumAlphas += w.alpha;
+      stage.setThreshold(0.5 * sumAlphas);
+
+      // evaluate on negatives to filter out "easy" ones
       std::vector<Image<long long>> hardNegs;
       for (auto const& I : negIs) {
         if (cascade.classify(I, 0, 0))

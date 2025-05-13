@@ -2,7 +2,7 @@
 
 Viola-Jones face detection algorithm implementation written on C++
 
-Reusable header-only lib
+You can check if all the dependencies are correctly installed compiling the demo
 
 Project structure:
 
@@ -18,5 +18,5 @@ Project structure:
   - `utils.hpp` — helper utilities (e.g., `loadIntegralSamples`)
 - **src/**
   - `Trainer.cpp`
+  - `main.cpp` — _camera + sliding/multi-scale loop_
   - `trainer_main.cpp` — _builds cascade from *pos/neg* folders_
-  - `detect_main.cpp` — _camera + sliding/multi-scale loop_

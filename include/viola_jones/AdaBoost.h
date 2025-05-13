@@ -4,11 +4,13 @@
 #include "HaarFeature.h"
 #include <vector>
 #include <cstddef>
+#include <string>
 
 namespace vj {
 
 template<typename T>
 class AdaBoost {
+    friend class Trainer; // Allow Trainer to access private members
 public:
     struct Weak {
         HaarFeature<T> feat;
@@ -35,6 +37,40 @@ public:
 
     // adjust final threshold if needed
     void setThreshold(double t) { threshold_ = t; }
+
+    // serialization
+    void save(std::ostream& os) const {
+      // number of weak learners
+      os << weaks_.size() << "\n";
+      for (auto const& w : weaks_) {
+        // 1) serialize feature
+        w.feat.save(os);
+        // 2) serialize thresh, polarity, alpha
+        os << w.thresh << " "
+           << w.polarity << " "
+           << w.alpha << "\n";
+      }
+      // 3) serialize threshold
+      os << threshold_ << "\n";
+    }
+
+    static AdaBoost<T> load(std::istream& is) {
+      AdaBoost<T> ab;
+      std::string K_str;
+      is >> K_str;
+      size_t K = std::stoull(K_str);
+      for (size_t i = 0; i < K; ++i) {
+        // a) load feature
+        auto feat = HaarFeature<T>::load(is);
+        // b) load thresh, polarity, alpha
+        T thresh; int polarity; double alpha;
+        is >> thresh >> polarity >> alpha;
+        ab.weaks_.push_back({feat, thresh, polarity, alpha});
+      }
+      // load threshold
+      is >> ab.threshold_;
+      return ab;
+    }
 
 private:
     std::vector<Weak> weaks_;

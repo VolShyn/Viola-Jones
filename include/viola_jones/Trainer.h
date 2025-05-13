@@ -44,7 +44,7 @@ public:
      * buidling a cascade by repeatedly calling trainStage
      * dropping “easy negatives” at each step
      */
-    static Cascade<int>
+    static CascadeClassifier<int>
     trainCascade(std::vector<Image<long long>> posIs,
                  std::vector<Image<long long>> negIs,
                  const TrainerOptions& opts);

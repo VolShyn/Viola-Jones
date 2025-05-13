@@ -35,16 +35,21 @@ add_library(viola_jones INTERFACE)
 target_include_directories(viola_jones
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-
-# two separate executables
-add_executable(demo_img
-    examples/demo.cpp
+# trainer exec
+add_executable(trainer
+  src/trainer_main.cpp
+  src/Trainer.cpp
 )
-target_link_libraries(demo_img PRIVATE viola_jones ${OpenCV_LIBS})
-target_include_directories(demo_img PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(trainer
+  PRIVATE viola_jones ${OpenCV_LIBS}
+)
+target_include_directories(trainer
+  PRIVATE ${OpenCV_INCLUDE_DIRS}
+)
 
-add_executable(demo_core
+# main
+add_executable(main
     src/main.cpp
 )
-target_link_libraries(demo_core PRIVATE viola_jones ${OpenCV_LIBS})
-target_include_directories(demo_core PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(main PRIVATE viola_jones ${OpenCV_LIBS})
+target_include_directories(main PRIVATE ${OpenCV_INCLUDE_DIRS})

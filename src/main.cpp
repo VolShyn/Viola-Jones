@@ -1,10 +1,16 @@
-#include <iostream>
-#include <opencv2/opencv.hpp>
+// #include <iostream>
+// #include <opencv2/opencv.hpp>
 
-#include "viola_jones/Image.h"
-#include "viola_jones/HaarFeature.h"
-#include "viola_jones/AdaBoost.h"
+// #include "viola_jones/Image.h"
+// #include "viola_jones/HaarFeature.h"
+// #include "viola_jones/AdaBoost.h"
+// #include "viola_jones/CascadeClassifier.h"
+
+#include <iostream>
+#include <fstream>
+#include <opencv2/opencv.hpp>
 #include "viola_jones/CascadeClassifier.h"
+#include "viola_jones/utils.hpp"
 
 int main(int argc, char** argv){
     // initialize camera (0 = default)
@@ -14,16 +20,16 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    // prepare your weak classifier cascade once
-    vj::Rect white { 0u, 0u, 24u, 12u };
-    vj::Rect black { 0u, 12u, 24u, 12u };
+    // prepare weak classifier cascade once
+    vj::Rect<int> white { 0, 0, 24, 12 };
+    vj::Rect<int> black { 0, 12, 24, 12 };
     vj::HaarFeature<int> hf{white, black};
 
     vj::AdaBoost<int> stage;
     stage.add({ hf, 1000, +1, 0.6 });
     stage.setThreshold(0.5);
 
-    vj::Cascade<int> cascade;
+    vj::CascadeClassifier<int> cascade;
     cascade.addStage(stage);
 
     cv::Mat frame, gray;

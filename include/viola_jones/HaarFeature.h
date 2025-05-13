@@ -7,14 +7,14 @@
 
 namespace vj {
 
-struct Rect {
-    std::size_t x, y, w, h;
-};
+template<typename T>
+struct Rect { T x,y,w,h; };
+
 
 template<typename T>
 class HaarFeature {
 public:
-    HaarFeature(Rect white, Rect black)
+    HaarFeature(Rect<T> white, Rect<T> black)
       : white_(white), black_(black) {}
 
     // evaluate at offset (ox,oy) on an integral image
@@ -25,14 +25,33 @@ public:
              - rectSum(I, black_, ox,oy);
     }
 
+    // serialization
+    void save(std::ostream& os) const {
+      // write white rect then black rect
+      os << white_.x << " " << white_.y << " "
+         << white_.w << " " << white_.h << "  ";
+      os << black_.x << " " << black_.y << " "
+         << black_.w << " " << black_.h << "\n";
+    }
+
+    static HaarFeature<T> load(std::istream& is) {
+      Rect<T> w, b;
+      is >> w.x >> w.y >> w.w >> w.h
+         >> b.x >> b.y >> b.w >> b.h;
+      return HaarFeature<T>(w,b);
+    }
+
+
 private:
-    Rect white_, black_;
+    Rect<T> white_, black_;
 
     static long long rectSum(const Image<long long>& I,
-                             Rect r, std::size_t ox, std::size_t oy)
+                             Rect<T> r, std::size_t ox, std::size_t oy)
     {
-        std::size_t x1 = ox + r.x, y1 = oy + r.y;
-        std::size_t x2 = x1 + r.w - 1, y2 = y1 + r.h - 1;
+        std::size_t x1 = ox + static_cast<std::size_t>(r.x);
+        std::size_t y1 = oy + static_cast<std::size_t>(r.y);
+        std::size_t x2 = x1 + static_cast<std::size_t>(r.w) - 1;
+        std::size_t y2 = y1 + static_cast<std::size_t>(r.h) - 1;
         if (x2 >= I.width() || y2 >= I.height())
             throw std::out_of_range("HaarFeature out of bounds");
 
