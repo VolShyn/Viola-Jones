@@ -8,16 +8,20 @@
 
 #include <vector>
 #include <cstddef>
+#include <functional>
 
 namespace vj {
 
 struct TrainerOptions {
     std::size_t window_size = 24;
-    std::size_t num_rounds   = 10;   // # weak learners per stage
+    std::size_t num_rounds   = 10;   // weak learners per stage
     double      target_FPR   = 0.5;  // false-positive rate per stage
     double      target_TPR   = 0.99; // detection rate per stage
 };
 
+// progress callback type for tracking training progress
+using ProgressCallback = std::function<void(int currentStage, int totalStages,
+                                           int currentRound, int totalRounds)>;
 
 // found this cool thing with  multi-string comments
 /**
@@ -42,12 +46,26 @@ public:
 
     /**
      * buidling a cascade by repeatedly calling trainStage
-     * dropping “easy negatives” at each step
+     * dropping "easy negatives" at each step
      */
     static CascadeClassifier<int>
     trainCascade(std::vector<Image<long long>> posIs,
                  std::vector<Image<long long>> negIs,
                  const TrainerOptions& opts);
+
+    /**
+     * building a cascade with progress tracking
+     * @param  posIs             integral‐images of positive windows
+     * @param  negIs             integral‐images of negative windows
+     * @param  opts              controls #rounds, etc
+     * @param  progressCallback  callback function for progress updates
+     * @return                   a trained cascade classifier
+     */
+    static CascadeClassifier<int>
+    trainCascade(std::vector<Image<long long>> posIs,
+                 std::vector<Image<long long>> negIs,
+                 const TrainerOptions& opts,
+                 ProgressCallback progressCallback);
 };
 
 } // namespace vj
