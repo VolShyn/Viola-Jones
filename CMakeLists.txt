@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # find pOpenCV
 find_package(OpenCV REQUIRED)
 
-# clang-tidy
+# clang-tidy default set of checks
 option(ENABLE_CLANG_TIDY "Run clang-tidy" ON)
 if(ENABLE_CLANG_TIDY)
     find_program(CLANG_TIDY_EXE NAMES clang-tidy)
@@ -16,7 +16,7 @@ if(ENABLE_CLANG_TIDY)
     endif()
 endif()
 
-# sanitizers
+# sanitizers (memory and UB)
 option(ENABLE_SANITIZERS "Enable ASan/UBSan" ON)
 if(ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     add_compile_options(
