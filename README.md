@@ -13,6 +13,7 @@ Project structure:
 
 **Project/**
 - **CMakeLists.txt**
+- **config** - _have configs .dat_
 - **include/**
   - **viola_jones/**
     - `Image.h`
